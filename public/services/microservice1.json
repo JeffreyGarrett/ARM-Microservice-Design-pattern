@@ -1,0 +1,109 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "remoteBaseURL": {
+            "type": "string"
+        },
+        "rgLocation": {
+            "type": "string"
+        },
+        "rgName": {
+            "type": "string"
+        },
+        "appSettings": {
+            "type": "object"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2018-05-01",
+            "location": "[parameters('rgLocation')]",
+            "name": "[parameters('rgName')]",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "storageAccountDeployment",
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups/', parameters('rgName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('remoteBaseURL'),'/Resources/storage.json')]"
+                },
+                "parameters": {
+                    "rgName": {
+                        "value": "[parameters('rgName')]"
+                    },
+                    "rgLocation": {
+                        "value": "[parameters('rgLocation')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "cosmosdbDeployment",
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups/', parameters('rgName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('remoteBaseURL'),'/Resources/cosmosdb.json')]"
+                },
+                "parameters": {
+                    "rgName": {
+                        "value": "[parameters('rgName')]"
+                    },
+                    "rgLocation": {
+                        "value": "[parameters('rgLocation')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "functionAppDeployment",
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
+                "cosmosdbDeployment",
+                "[resourceId('Microsoft.Resources/resourceGroups/', parameters('rgName'))]",
+                "storageAccountDeployment"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('remoteBaseURL'),'/Resources/functionApp.json')]"
+                },
+                "parameters": {
+                    "rgName": {
+                        "value": "[parameters('rgName')]"
+                    },
+                    "rgLocation": {
+                        "value": "[parameters('rgLocation')]"
+                    },
+                    "appSettings": {
+                        "value": "[parameters('appSettings').customSettings]"
+                    },
+                    "storageAccountKey": {
+                        "value": "[reference('storageAccountDeployment').outputs.storageConnection.value]"
+                    },
+                    "cosmosConnection": {
+                        "value": "[reference('cosmosdbDeployment').outputs.cosmosConnection.value]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

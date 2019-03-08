@@ -1,0 +1,97 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "rgName": {
+            "type": "string"
+        },
+        "rgLocation": {
+            "type": "string"
+        },
+        "appSettings": {
+            "type": "array"
+        },
+        "storageAccountKey": {
+            "type": "string"
+        },
+        "cosmosConnection": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "appGeneratedSettings": [
+            {
+                "name": "WEBSITE_CONTENTSHARE",
+                "value": "[toLower(parameters('rgName'))]"
+            },
+            {
+                "name": "AzureWebJobsStorage",
+                "value": "[parameters('storageAccountKey')]"
+            },
+            {
+                "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                "value": "[parameters('storageAccountKey')]"
+            },
+            {
+                "name": "CosmosDBConnection",
+                "value": "[parameters('cosmosConnection')]"
+            },
+            {
+                "name": "FUNCTIONS_EXTENSION_VERSION",
+                "value": "~2"
+            }
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[concat(toLower(parameters('rgName')), 'serverFarm')]",
+            "location": "[parameters('rgLocation')]",
+            "properties": {
+                "name": "[concat(toLower(parameters('rgName')),'serverFarm')]",
+                "computeMode": "Dynamic"
+            },
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic",
+                "size": "Y1",
+                "family": "Y",
+                "capacity": 0
+            }
+        },
+        {
+            "apiVersion": "2018-02-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[concat(toLower(parameters('rgName')),'functionApp')]",
+            "location": "[parameters('rgLocation')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "kind": "functionapp",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', concat(toLower(parameters('rgName')),'serverFarm'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', toLower(parameters('rgName')))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                    "http20Enabled": true,
+                    "use32BitWorkerProcess": false,
+                    "defaultDocuments": [
+                        ""
+                    ],
+                    "remoteDebuggingEnabled": false,
+                    "phpVersion": "Off",
+                    "ftpsState": "Disabled",
+                    "minTlsVersion": 1.2,
+                    "appSettings": "[union(parameters('appSettings'), variables('appGeneratedSettings'))]"
+                },
+                "name": "[concat(toLower(parameters('rgName')),'functionApp')]",
+                "clientAffinityEnabled": false,
+                "reserved": false
+            }
+        }
+    ],
+    "outputs": {}
+}

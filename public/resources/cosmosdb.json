@@ -1,0 +1,46 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "rgName": {
+            "type": "string"
+        },
+        "rgLocation": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "resourceId": "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(parameters('rgName')))]",
+        "apiVersion": "[providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2015-04-08",
+            "name": "[toLower(parameters('rgName'))]",
+            "location": "[parameters('rgLocation')]",
+            "tags": {},
+            "kind": "GlobalDocumentDB",
+            "properties": {
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Strong"
+                },
+                "locations": [
+                    {
+                        "locationName": "[parameters('rgLocation')]",
+                        "failoverPriority": 0
+                    }
+                ],
+                "databaseAccountOfferType": "Standard",
+                "ipRangeFilter": "",
+                "enableAutomaticFailover": false
+            }
+        }
+    ],
+    "outputs": {
+        "cosmosConnection": {
+            "type": "string",
+            "value": "[concat('AccountEndpoint=https://', toLower(parameters('rgName')), '.documents.azure.com:443/;AccountKey=', listKeys(variables('resourceId'), variables('apiVersion')).primaryMasterKey, ';')]"
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+      "appSettings": {
+        "value": {
+          "customSettings": [
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+                "name": "app_env_var1",
+                "value": "example_prod"
+            },
+            {
+                "name": "app_env_var2",
+                "value": "example2_prod"
+            }
+          ]
+        }
+      }
+    }
+  }

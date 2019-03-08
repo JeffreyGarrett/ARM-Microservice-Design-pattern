@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "rgName": {
+            "type": "string"
+        },
+        "rgLocation": {
+            "type": "string"
+        },
+        "storageSku": {
+            "type": "string",
+            "defaultValue": "Standard_RAGRS"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[toLower(parameters('rgName'))]",
+            "apiVersion": "2018-07-01",
+            "location": "[parameters('rgLocation')]",
+            "kind": "StorageV2",
+            "properties": {
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "blob": {
+                            "enabled": true
+                        },
+                        "file": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "sku": {
+                "name": "[parameters('storageSku')]"
+            }
+        }
+    ],
+    "outputs": {
+        "storageConnection": {
+            "type": "string",
+            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', toLower(parameters('rgName')), ';AccountKey=', listKeys(concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', toLower(parameters('rgName'))),'2015-05-01-preview').key1)]"
+        }
+    }
+}

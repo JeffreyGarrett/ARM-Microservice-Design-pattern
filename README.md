@@ -1,5 +1,5 @@
 # intro
-this repo is designed to illlustrate a design pattern for deploying microservices architecture on azure utilizing Azure resources and ARM templates.  We hope to spark thought and help in clarifying and simplify getting up and running.
+this repo is designed to illlustrate a design pattern for deploying microservices architecture on azure utilizing Azure resources and ARM templates.  We hope to spark thought and help in clarifying and simplify getting up and running.  
 
 # file structure
 ```
@@ -44,4 +44,18 @@ deployment: small
 this works in the sense that manual testing from an ops perspective is less not more, while automated testing will do the heavy lifting
 
 
+# deploying
+
+Because linked templates require the templates to be public, you'll need a way to broadcast templates.  In order to speed up development host your deployments locally using ngrok.  This allows for deployments quickly and iteratively without pushing to repos for new feature branches and testing new infrastructure deployments.
+
+- install http-server  `npm install -g http-server`
+- install ngrok `npm install -g ngrok`
+- from `public` folder deploy http server `http-server ./ -p 8080`
+- deplpoy ngrok `ngrok http 8080`
+- update your deployment script (in deployments folder)
+- run your deployment.sh script (see examples)
+
+# NOTE
+- this is an example does not include security or other deployment needs
+- this doesn't include perfect examples: suggest you see azure's template repo's
 
